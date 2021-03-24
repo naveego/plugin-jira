@@ -1,0 +1,57 @@
+{
+  "id": "plugin-jira",
+  "displayName": "Jira",
+  "description": "Publisher which connects to Jira",
+  "apiVersion": "2",
+  "versionDescription": "Version 2",
+  "version": "1.0.0",
+  "iconFile": "icon.png",
+  "executable": "PluginJira",
+  "kind": "publisher",
+  "os": "$GOOS",
+  "arch": "$GOARCH",
+  "accessGroups": [],
+  "canProduceMultipleSchemas": true,
+  "canAcceptQueryBasedSchemas": false,
+  "canUseOAuth": false,
+  "canConfigure": true,
+  "canConfigureRealTime": false,
+  "canConfigureWrite": false,
+  "canWrite": true,
+  "canConfigureReplication": false,
+  "canWriteReplication": false,
+  "querySchema": {
+    "ui": {
+      "ui:widget": "code",
+      "ui:options": {
+        "language": "sql"
+      }
+    },
+    "schema": {
+      "type": "string"
+    }
+  },
+  "configSchema": {
+    "ui": {
+      "ui:order": [
+        "ApiKey"
+      ],
+      "ApiKey": {
+        "ui:widget": "password"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "ApiKey" : {
+          "type": "string",
+          "title": "API Key",
+          "description": "The Jira API Key."
+        }
+      },
+      "required": [
+        "ApiKey"
+      ]
+    }
+  }
+}
