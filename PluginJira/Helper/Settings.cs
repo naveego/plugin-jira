@@ -8,7 +8,6 @@ namespace PluginJira.Helper
         
         public string Username { get; set; }
         public string ApiKey { get; set; }
-
         public string Tenant { get; set; }
 
         /// <summary>
@@ -37,11 +36,14 @@ namespace PluginJira.Helper
             }
         }
 
+        public string GetSdkUri() 
+        {
+            return $"https://{Tenant}.atlassian.net";     
+        }
 
-        public string GetBaseUri(){
-
-            return $"https://{Tenant}.atlassian.net/rest/api/2";
-                    
+        public string GetBaseUri()
+        {
+            return $"https://{Tenant}.atlassian.net/rest/api/2";           
         }
     }
 }

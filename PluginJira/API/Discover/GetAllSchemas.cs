@@ -12,7 +12,7 @@ namespace PluginJira.API.Discover
 {
     public static partial class Discover
     {
-        public static async IAsyncEnumerable<Schema> GetAllSchemas(IApiClient apiClient, Settings settings,
+        public static async IAsyncEnumerable<Schema> GetAllSchemas(IApiClientFactory factory, Settings settings,
             int sampleSize = 5)
         {
             var allEndpoints = EndpointHelper.GetAllEndpoints();
@@ -29,14 +29,14 @@ namespace PluginJira.API.Discover
                     DataFlowDirection = endpoint.GetDataFlowDirection()
                 };
 
-                schema = await GetSchemaForEndpoint(apiClient, schema, endpoint);
+                schema = await GetSchemaForEndpoint(factory,settings, schema, endpoint);
 
                 // get sample and count
-                yield return await AddSampleAndCount(apiClient, schema, sampleSize, endpoint);
+                yield return await AddSampleAndCount(factory,settings, schema, sampleSize, endpoint);
             }
         }
 
-        private static async Task<Schema> AddSampleAndCount(IApiClient apiClient, Schema schema,
+        private static async Task<Schema> AddSampleAndCount(IApiClientFactory factory, Settings settings, Schema schema,
             int sampleSize, Endpoint? endpoint)
         {
             if (endpoint == null)
@@ -45,14 +45,14 @@ namespace PluginJira.API.Discover
             }
 
             // add sample and count
-            var records = Read.Read.ReadRecordsAsync(apiClient, schema).Take(sampleSize);
+            var records = Read.Read.ReadRecordsAsync(factory,settings, schema).Take(sampleSize);
             schema.Sample.AddRange(await records.ToListAsync());
-            schema.Count = await GetCountOfRecords(apiClient, endpoint);
+            schema.Count = await GetCountOfRecords(factory,settings, endpoint);
 
             return schema;
         }
 
-        private static async Task<Schema> GetSchemaForEndpoint(IApiClient apiClient, Schema schema, Endpoint? endpoint)
+        private static async Task<Schema> GetSchemaForEndpoint(IApiClientFactory factory, Settings settings,Schema schema, Endpoint? endpoint)
         {
             if (endpoint == null)
             {
@@ -61,10 +61,10 @@ namespace PluginJira.API.Discover
 
             if (endpoint.ShouldGetStaticSchema)
             {
-                return await endpoint.GetStaticSchemaAsync(apiClient, schema);
+                return await endpoint.GetStaticSchemaAsync(factory,settings, schema);
             }
 
-            var recordsListRaw = await endpoint.ReadRecordsAsync(apiClient, null, null, true).Take(100).ToListAsync();
+            var recordsListRaw = await endpoint.ReadRecordsAsync(factory,settings, null, null, true).Take(100).ToListAsync();
             var recordsList = recordsListRaw
                 .Select(r => JsonConvert.DeserializeObject<Dictionary<string, object>>(r.DataJson))
                 .ToList();
@@ -87,7 +87,7 @@ namespace PluginJira.API.Discover
                         IsKey = endpoint.PropertyKeys.Contains(recordKey),
                         IsCreateCounter = false,
                         IsUpdateCounter = false,
-                        TypeAtSource = await endpoint.IsCustomProperty(apiClient, recordKey)
+                        TypeAtSource = await endpoint.IsCustomProperty(factory,settings, recordKey)
                             ? Constants.CustomProperty
                             : "",
                         IsNullable = true

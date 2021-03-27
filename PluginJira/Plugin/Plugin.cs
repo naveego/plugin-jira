@@ -176,7 +176,7 @@ namespace PluginJira.Plugin
                 // get all schemas
                 try
                 {
-                    var schemas = Discover.GetAllSchemas(_apiClient, _server.Settings, sampleSize);
+                    var schemas = Discover.GetAllSchemas(_apiClientFactory, _server.Settings, sampleSize);
 
                     discoverSchemasResponse.Schemas.AddRange(await schemas.ToListAsync());
 
@@ -197,7 +197,7 @@ namespace PluginJira.Plugin
 
                 Logger.Info($"Refresh schemas attempted: {refreshSchemas.Count}");
 
-                var schemas = Discover.GetRefreshSchemas(_apiClient, refreshSchemas, sampleSize);
+                var schemas = Discover.GetRefreshSchemas(_apiClientFactory, _server.Settings, refreshSchemas, sampleSize);
 
                 discoverSchemasResponse.Schemas.AddRange(await schemas.ToListAsync());
 
@@ -280,11 +280,11 @@ namespace PluginJira.Plugin
 
                 if (!string.IsNullOrWhiteSpace(request.RealTimeSettingsJson))
                 {
-                    recordsCount = await Read.ReadRecordsRealTimeAsync(_apiClient, request, responseStream, context);
+                    recordsCount = await Read.ReadRecordsRealTimeAsync(_apiClientFactory, _server.Settings, request, responseStream, context);
                 }
                 else
                 {
-                    var records = Read.ReadRecordsAsync(_apiClient, schema);
+                    var records = Read.ReadRecordsAsync(_apiClientFactory, _server.Settings, schema);
 
                     await foreach (var record in records)
                     {

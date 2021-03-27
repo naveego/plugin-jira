@@ -20,9 +20,9 @@ namespace PluginJiraTest.Plugin
         {
             return new Settings
             {
-                ApiKey = "e7019425-1e8a-42b9-993d-cec8796f928d",
-                Username = "test123",
-                Tenant = "tests"
+                ApiKey = "uCkrVYuQ5ZE3GhZoDuDMC48E",
+                Username = "support@qumulussolutions.com",
+                Tenant = "qumulus"
             };
         }
 
@@ -41,7 +41,7 @@ namespace PluginJiraTest.Plugin
         private Schema GetTestSchema(string endpointId = null, string id = "test", string name = "test")
         {
             Endpoint endpoint = endpointId == null
-                ? endpoint = EndpointHelper.GetEndpointForId("AllCampaigns")
+                ? endpoint = EndpointHelper.GetEndpointForId("AllIssues")
                 : EndpointHelper.GetEndpointForId(endpointId);
 
 
@@ -262,7 +262,7 @@ namespace PluginJiraTest.Plugin
             var channel = new Channel($"localhost:{port}", ChannelCredentials.Insecure);
             var client = new Publisher.PublisherClient(channel);
 
-            var schema = GetTestSchema();
+            var schema = GetTestSchema("AllIssues");
 
             var connectRequest = GetConnectSettings();
 
@@ -296,7 +296,7 @@ namespace PluginJiraTest.Plugin
             }
 
             // assert
-            Assert.Equal(2, records.Count);
+            Assert.Equal(20, records.Count);
 
             var record = JsonConvert.DeserializeObject<Dictionary<string, object>>(records[0].DataJson);
             // Assert.Equal("~", record["tilde"]);
