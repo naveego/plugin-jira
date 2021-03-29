@@ -10,7 +10,7 @@ namespace PluginJira.API.Read
 {
     public static partial class Read
     {
-        public static async Task<long> ReadRecordsRealTimeAsync(IApiClient apiClient, ReadRequest request,
+        public static async Task<long> ReadRecordsRealTimeAsync(IApiClientFactory factory, Settings settings, ReadRequest request,
             IServerStreamWriter<Record> responseStream,
             ServerCallContext context)
         {
@@ -42,7 +42,7 @@ namespace PluginJira.API.Read
                     
                     var tcs = new TaskCompletionSource<DateTime>();
                     
-                    var records = ReadRecordsAsync(apiClient, schema, realTimeState.LastReadTime, tcs);
+                    var records = ReadRecordsAsync(factory, settings, schema, realTimeState.LastReadTime, tcs);
 
                     await foreach (var record in records)
                     {

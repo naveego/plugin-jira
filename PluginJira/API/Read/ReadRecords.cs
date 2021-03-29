@@ -11,11 +11,11 @@ namespace PluginJira.API.Read
 {
     public static partial class Read
     {
-        public static async IAsyncEnumerable<Record> ReadRecordsAsync(IApiClient apiClient, Schema schema, DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null)
+        public static async IAsyncEnumerable<Record> ReadRecordsAsync(IApiClientFactory factory, Settings settings, Schema schema, DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null)
         {
             var endpoint = EndpointHelper.GetEndpointForSchema(schema);
 
-            var records = endpoint?.ReadRecordsAsync(apiClient, lastReadTime, tcs);
+            var records = endpoint?.ReadRecordsAsync(factory, settings, lastReadTime, tcs);
 
             if (records != null)
             {

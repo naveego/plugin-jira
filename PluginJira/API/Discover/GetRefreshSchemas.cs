@@ -10,17 +10,17 @@ namespace PluginJira.API.Discover
 {
     public static partial class Discover
     {
-        public static async IAsyncEnumerable<Schema> GetRefreshSchemas(IApiClient apiClient,
+        public static async IAsyncEnumerable<Schema> GetRefreshSchemas(IApiClientFactory factory, Settings settings,
             RepeatedField<Schema> refreshSchemas, int sampleSize = 5)
         {
             foreach (var schema in refreshSchemas)
             {
                 var endpoint = EndpointHelper.GetEndpointForSchema(schema);
 
-                var refreshSchema = await GetSchemaForEndpoint(apiClient, schema, endpoint);
+                var refreshSchema = await GetSchemaForEndpoint(factory, settings, schema, endpoint);
 
                 // get sample and count
-                yield return await AddSampleAndCount(apiClient, refreshSchema, sampleSize, endpoint);
+                yield return await AddSampleAndCount(factory, settings,refreshSchema, sampleSize, endpoint);
             }
         }
     }
