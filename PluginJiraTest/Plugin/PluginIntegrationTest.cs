@@ -20,9 +20,9 @@ namespace PluginJiraTest.Plugin
         {
             return new Settings
             {
-                ApiKey = "uCkrVYuQ5ZE3GhZoDuDMC48E",
-                Username = "support@qumulussolutions.com",
-                Tenant = "qumulus"
+                ApiKey = "test123",
+                Username = "test123",
+                Tenant = "test123"
             };
         }
 

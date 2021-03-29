@@ -29,10 +29,10 @@ namespace PluginJira.API.Discover
                     DataFlowDirection = endpoint.GetDataFlowDirection()
                 };
 
-                schema = await GetSchemaForEndpoint(factory,settings, schema, endpoint);
+                schema = await GetSchemaForEndpoint(factory, settings, schema, endpoint);
 
                 // get sample and count
-                yield return await AddSampleAndCount(factory,settings, schema, sampleSize, endpoint);
+                yield return await AddSampleAndCount(factory, settings, schema, sampleSize, endpoint);
             }
         }
 
@@ -45,9 +45,9 @@ namespace PluginJira.API.Discover
             }
 
             // add sample and count
-            var records = Read.Read.ReadRecordsAsync(factory,settings, schema).Take(sampleSize);
+            var records = Read.Read.ReadRecordsAsync(factory, settings, schema).Take(sampleSize);
             schema.Sample.AddRange(await records.ToListAsync());
-            schema.Count = await GetCountOfRecords(factory,settings, endpoint);
+            schema.Count = await GetCountOfRecords(factory, settings, endpoint);
 
             return schema;
         }
@@ -61,10 +61,10 @@ namespace PluginJira.API.Discover
 
             if (endpoint.ShouldGetStaticSchema)
             {
-                return await endpoint.GetStaticSchemaAsync(factory,settings, schema);
+                return await endpoint.GetStaticSchemaAsync(factory, settings, schema);
             }
 
-            var recordsListRaw = await endpoint.ReadRecordsAsync(factory,settings, null, null, true).Take(100).ToListAsync();
+            var recordsListRaw = await endpoint.ReadRecordsAsync(factory, settings, null, null, true).Take(100).ToListAsync();
             var recordsList = recordsListRaw
                 .Select(r => JsonConvert.DeserializeObject<Dictionary<string, object>>(r.DataJson))
                 .ToList();
@@ -87,7 +87,7 @@ namespace PluginJira.API.Discover
                         IsKey = endpoint.PropertyKeys.Contains(recordKey),
                         IsCreateCounter = false,
                         IsUpdateCounter = false,
-                        TypeAtSource = await endpoint.IsCustomProperty(factory,settings, recordKey)
+                        TypeAtSource = await endpoint.IsCustomProperty(factory, settings, recordKey)
                             ? Constants.CustomProperty
                             : "",
                         IsNullable = true
