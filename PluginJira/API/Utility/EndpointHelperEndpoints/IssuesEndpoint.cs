@@ -38,7 +38,16 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                     var recordMap = new Dictionary<string, object>();
 
                     // pull in all desired properties
-                    recordMap["Key"] = issue.Key.Value;     
+                    recordMap["Key"] = issue.Key.Value;
+                    recordMap["Project"] = issue.Project;
+                    recordMap["Issuetype"] = issue.Type.Name;
+                    recordMap["Description"] = issue.Description;
+                    recordMap["Reporter"] = issue.ReporterUser.DisplayName;
+                    recordMap["Created"] = issue.Created.Value;
+                    recordMap["Status"] = issue.Status.Name;
+                    recordMap["Resolution"] = issue.Resolution;
+                    recordMap["Updated"] = issue.Updated.Value;
+
 
                     yield return new Record
                     {
