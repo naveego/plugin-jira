@@ -61,14 +61,17 @@ namespace PluginJira.API.Factory
             try
             {
                 var token = await Authenticator.GetToken();
-                var uri = new Uri($"{Constants.BaseApiUrl.TrimEnd('/')}/{path.TrimStart('/')}");
+                var uri = new Uri($"{Settings.GetBaseUri().TrimEnd('/')}/{path.TrimStart('/')}");
                 
                 var request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
                     RequestUri = uri,
                 };
-                request.Headers.Add(_tokenHeaderName, token);
+                //request.Headers.Add(_tokenHeaderName, token);
+                
+                // Add basic authentication
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", token);
 
                 return await Client.SendAsync(request);
             }

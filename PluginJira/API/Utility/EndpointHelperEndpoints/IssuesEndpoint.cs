@@ -24,36 +24,49 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 // fetch all records
                 var jira = factory.CreateJiraClient(settings);
 
-                // var issues = jira.Issues.Queryable
-                // .Select(i => i)
-                // .GroupBy(i => i.Key);
+                string projectKey = "DEMO";
 
-                var issues = from i in jira.Issues.Queryable
-                    select i;
 
-                // iterate and return each record
-                // foreach on results of JQL
-                foreach (var issue in issues) 
+                // Adding logic for pagination
+                int itemsPerPage = 50;
+                int startAt = 0;
+
+                while(true)
                 {
-                    var recordMap = new Dictionary<string, object>();
 
-                    // pull in all desired properties
-                    recordMap["Key"] = issue.Key.Value;
-                    recordMap["Project"] = issue.Project;
-                    recordMap["Issuetype"] = issue.Type.Name;
-                    recordMap["Description"] = issue.Description;
-                    recordMap["Reporter"] = issue.ReporterUser.DisplayName;
-                    recordMap["Created"] = issue.Created.Value;
-                    recordMap["Status"] = issue.Status.Name;
-                    recordMap["Resolution"] = issue.Resolution;
-                    recordMap["Updated"] = issue.Updated.Value;
+                    var issues = await jira.Issues.GetIssuesFromJqlAsync($"project = {projectKey} ORDER BY created DESC", itemsPerPage, startAt);
+                   
 
+                    if (issues.Count() == 0)
+                        break;
 
-                    yield return new Record
+                
+                    // iterate and return each record
+                    // foreach on results of JQL
+                    foreach (var issue in issues) 
                     {
-                        Action = Record.Types.Action.Upsert,
-                        DataJson = JsonConvert.SerializeObject(recordMap)
-                    };
+                        var recordMap = new Dictionary<string, object>();
+
+                        // pull in all desired properties
+                        recordMap["Key"] = Convert.ToString(issue.Key.Value);
+                        recordMap["Project"] = Convert.ToString(issue.Project);
+                        recordMap["Issuetype"] = Convert.ToString(issue.Type.Name);
+                        recordMap["Description"] = Convert.ToString(issue.Description);
+                        recordMap["Reporter"] = Convert.ToString(issue.ReporterUser.DisplayName);
+                        recordMap["Created"] = Convert.ToString(issue.Created.Value);
+                        recordMap["Status"] = Convert.ToString(issue.Status.Name);
+                        recordMap["Resolution"] = Convert.ToString(issue.Resolution);
+                        recordMap["Updated"] = Convert.ToString(issue.Updated.Value);
+
+
+                        yield return new Record
+                        {
+                            Action = Record.Types.Action.Upsert,
+                            DataJson = JsonConvert.SerializeObject(recordMap)
+                        };
+                    }
+
+                    startAt += itemsPerPage;
                 }
             } 
         }

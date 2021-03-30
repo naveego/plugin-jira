@@ -23,6 +23,7 @@ namespace PluginJira.API.Utility
         static EndpointHelper()
         {
             IssuesEndpointHelper.IssuesEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
+            ApplicationRolesEndpointHelper.ApplicationRolesEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
         }
 
         public static Dictionary<string, Endpoint> GetAllEndpoints()

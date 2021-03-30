@@ -10,6 +10,7 @@ namespace PluginJira.Helper
         public string ApiKey { get; set; }
         public string Tenant { get; set; }
 
+
         /// <summary>
         /// Validates the settings input object
         /// </summary>
