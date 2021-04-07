@@ -20,9 +20,9 @@ namespace PluginJiraTest.Plugin
         {
             return new Settings
             {
-                ApiKey = "test123",
-                Username = "test123",
-                Tenant = "test123"
+                ApiKey = "uCkrVYuQ5ZE3GhZoDuDMC48E",
+                Username = "support@qumulussolutions.com",
+                Tenant = "qumulus"
             };
         }
 
@@ -356,7 +356,7 @@ namespace PluginJiraTest.Plugin
             }
 
             // assert
-            Assert.Equal(2, records.Count);
+            Assert.Equal(1, records.Count);
 
             var record = JsonConvert.DeserializeObject<Dictionary<string, object>>(records[0].DataJson);
             // Assert.Equal("~", record["tilde"]);

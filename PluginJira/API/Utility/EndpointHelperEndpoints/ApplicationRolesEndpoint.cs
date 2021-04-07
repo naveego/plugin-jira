@@ -25,14 +25,20 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 var jira = factory.CreateApiClient(settings);
 
                 var response = await jira.GetAsync("applicationrole");
-                var recordsList =JsonConvert.DeserializeObject<DataWrapper>(await response.Content.ReadAsStringAsync());
+
+                var test = await response.Content.ReadAsStringAsync();
+
+                var recordsList = JsonConvert.DeserializeObject<List<ApplicationEndpointWrapper>>(await response.Content.ReadAsStringAsync());
 
 
-                foreach (var item in recordsList.Items){
+                foreach (var item in recordsList){
 
                     var recordMap = new Dictionary<string, object>();
-                    recordMap.TryAdd(item.ToString(), item.Values);
 
+                    recordMap["key"] = item.key;
+                    recordMap["groups"] = item.groups;
+                    recordMap["name"]= item.name;
+                    
                         
                         yield return new Record
                         {
@@ -43,6 +49,22 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
 
                 }
 
+        public override async Task<Count> GetCountOfRecords(IApiClientFactory factory, Settings settings)
+        {
+            var response = await factory.CreateApiClient(settings).GetAsync($"{BasePath.TrimEnd('/')}/{AllPath.TrimStart('/')}");
+
+            //var recordsList = JsonConvert.DeserializeObject <DataWrapper>(await response.Content.ReadAsStringAsync());
+            var recordsList = JsonConvert.DeserializeObject <List<ApplicationEndpointWrapper>>(await response.Content.ReadAsStringAsync());
+
+            return new Count
+            {
+                Kind = Count.Types.Kind.Exact,
+                //Value = (int) recordsList.TotalRecords
+                Value = (int) recordsList.Count()
+            };
+
+            //throw new NotImplementedException();
+        }
         }
         
         public static readonly Dictionary<string, Endpoint> ApplicationRolesEndpoints = new Dictionary<string, Endpoint>

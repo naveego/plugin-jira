@@ -66,15 +66,19 @@ namespace PluginJira.API.Utility
 
         public virtual async Task<Count> GetCountOfRecords(IApiClientFactory factory, Settings settings)
         {
-            var response = await factory.CreateApiClient(settings).GetAsync($"{BasePath.TrimEnd('/')}/{AllPath.TrimStart('/')}");
+            // var response = await factory.CreateApiClient(settings).GetAsync($"{BasePath.TrimEnd('/')}/{AllPath.TrimStart('/')}");
 
-            var recordsList = JsonConvert.DeserializeObject<DataWrapper>(await response.Content.ReadAsStringAsync());
+            // //var recordsList = JsonConvert.DeserializeObject <DataWrapper>(await response.Content.ReadAsStringAsync());
+            // var recordsList = JsonConvert.DeserializeObject <List<DataWrapper>>(await response.Content.ReadAsStringAsync());
 
-            return new Count
-            {
-                Kind = Count.Types.Kind.Exact,
-                Value = (int) recordsList.TotalRecords
-            };
+            // return new Count
+            // {
+            //     Kind = Count.Types.Kind.Exact,
+            //     //Value = (int) recordsList.TotalRecords
+            //     Value = (int) recordsList.Count()
+            // };
+
+            throw new NotImplementedException();
         }
 
         public virtual IAsyncEnumerable<Record> ReadRecordsAsync(IApiClientFactory factory, Settings settings,

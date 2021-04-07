@@ -69,6 +69,19 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                     startAt += itemsPerPage;
                 }
             } 
+        
+            public override async Task<Count> GetCountOfRecords(IApiClientFactory factory, Settings settings)
+            {
+                var response = await factory.CreateApiClient(settings).GetAsync($"{BasePath.TrimEnd('/')}/{AllPath.TrimStart('/')}");
+
+                var recordsList = JsonConvert.DeserializeObject <IssueEndpointWrapper>(await response.Content.ReadAsStringAsync());
+
+                return new Count
+                {
+                    Kind = Count.Types.Kind.Exact,
+                    Value = (int) recordsList.TotalRecords
+                };
+            }
         }
         
         public static readonly Dictionary<string, Endpoint> IssuesEndpoints = new Dictionary<string, Endpoint>
