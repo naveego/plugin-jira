@@ -24,7 +24,7 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 // fetch all records
                 var jira = factory.CreateJiraClient(settings);
 
-                var projectKey = "DEMO";
+                var projectKey = settings.GetProject();
 
                 // Adding logic for pagination
                 var itemsPerPage = 50;
@@ -70,14 +70,18 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
         
             public override async Task<Count> GetCountOfRecords(IApiClientFactory factory, Settings settings)
             {
-                var response = await factory.CreateApiClient(settings).GetAsync($"{BasePath.TrimEnd('/')}/{AllPath.TrimStart('/')}");
+                var jira = factory.CreateJiraClient(settings);
 
-                var recordsList = JsonConvert.DeserializeObject <IssueEndpointWrapper>(await response.Content.ReadAsStringAsync());
+                var projectKey = settings.GetProject();
+
+                var issues = await jira.Issues.GetIssuesFromJqlAsync($"project = {projectKey} ORDER BY created DESC");
+
+                var total = issues.TotalItems;
 
                 return new Count
                 {
                     Kind = Count.Types.Kind.Exact,
-                    Value = (int) recordsList.TotalRecords
+                    Value = (int) total
                 };
             }
         }

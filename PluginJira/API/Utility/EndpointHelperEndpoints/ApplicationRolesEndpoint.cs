@@ -53,8 +53,7 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
 
                 return new Count
                 {
-                    Kind = Count.Types.Kind.Exact,
-                    Value = (int) recordsList.Count()
+                    Kind = Count.Types.Kind.Unavailable
                 };
 
             }
