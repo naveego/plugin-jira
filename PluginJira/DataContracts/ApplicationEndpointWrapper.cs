@@ -1,26 +1,45 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace PluginJira.DataContracts
 {
     public class ApplicationEndpointWrapper
     {
-        public string key { get; set; }
+        [JsonProperty("key")]
+        public string Key { get; set; }
 
-        public List<string> groups { get; set; }
+        [JsonProperty("groups")]
+        public List<string> Groups { get; set; }
 
-        public string name { get; set; }
-        public List<string> defaultGroups { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
-        public bool selectedByDefault { get; set; }
+        [JsonProperty("defaultGroups")]
+        public List<string> DefaultGroups { get; set; }
 
-        public bool defined { get; set; }
+        [JsonProperty("selectedByDefault")]
+        public bool SelectedByDefault { get; set; }
 
-        public long numberOfSeats { get; set; }
-        public long remainingSeats { get; set; }
-        public long userCount { get; set; }
-        public string userCountDescription { get; set; }
-        public bool hasUnlimitedSeats { get; set; }
-        public bool platform { get; set; }
+        [JsonProperty("defined")]
+        public bool Defined { get; set; }
+
+        [JsonProperty("numberOfSeats")]
+        public long NumberOfSeats { get; set; }
+
+        [JsonProperty("remainingSeats")]
+        public long RemainingSeats { get; set; }
+
+        [JsonProperty("userCount")]
+        public long UserCount { get; set; }
+
+        [JsonProperty("userCountDescription")]
+        public string UserCountDescription { get; set; }
+
+        [JsonProperty("hasUnlimitedSeats")]
+        public bool HasUnlimitedSeats { get; set; }
+
+        [JsonProperty("platform")]
+        public bool Platform { get; set; }
 
     }
 }

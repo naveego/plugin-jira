@@ -24,23 +24,22 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 // fetch all records
                 var jira = factory.CreateJiraClient(settings);
 
-                string projectKey = "DEMO";
-
+                var projectKey = "DEMO";
 
                 // Adding logic for pagination
-                int itemsPerPage = 50;
-                int startAt = 0;
+                var itemsPerPage = 50;
 
-                while(true)
+                var startAt = 0;
+
+                while (true)
                 {
-
                     var issues = await jira.Issues.GetIssuesFromJqlAsync($"project = {projectKey} ORDER BY created DESC", itemsPerPage, startAt);
                    
-
                     if (issues.Count() == 0)
+                    {
                         break;
-
-                
+                    }
+                        
                     // iterate and return each record
                     // foreach on results of JQL
                     foreach (var issue in issues) 
@@ -57,7 +56,6 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                         recordMap["Status"] = Convert.ToString(issue.Status.Name);
                         recordMap["Resolution"] = Convert.ToString(issue.Resolution);
                         recordMap["Updated"] = Convert.ToString(issue.Updated.Value);
-
 
                         yield return new Record
                         {

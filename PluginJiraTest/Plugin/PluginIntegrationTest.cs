@@ -20,9 +20,9 @@ namespace PluginJiraTest.Plugin
         {
             return new Settings
             {
-                ApiKey = "uCkrVYuQ5ZE3GhZoDuDMC48E",
-                Username = "support@qumulussolutions.com",
-                Tenant = "qumulus"
+                ApiKey = "test123",
+                Username = "test123",
+                Tenant = "test123"
             };
         }
 
@@ -299,7 +299,6 @@ namespace PluginJiraTest.Plugin
             Assert.Equal(254, records.Count);
 
             var record = JsonConvert.DeserializeObject<Dictionary<string, object>>(records[0].DataJson);
-            // Assert.Equal("~", record["tilde"]);
 
             // cleanup
             await channel.ShutdownAsync();
@@ -359,7 +358,6 @@ namespace PluginJiraTest.Plugin
             Assert.Equal(1, records.Count);
 
             var record = JsonConvert.DeserializeObject<Dictionary<string, object>>(records[0].DataJson);
-            // Assert.Equal("~", record["tilde"]);
 
             // cleanup
             await channel.ShutdownAsync();

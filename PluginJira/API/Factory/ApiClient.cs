@@ -68,7 +68,6 @@ namespace PluginJira.API.Factory
                     Method = HttpMethod.Get,
                     RequestUri = uri,
                 };
-                //request.Headers.Add(_tokenHeaderName, token);
                 
                 // Add basic authentication
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic", token);

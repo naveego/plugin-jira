@@ -5,11 +5,9 @@ namespace PluginJira.Helper
 {
     public class Settings
     {
-        
         public string Username { get; set; }
         public string ApiKey { get; set; }
         public string Tenant { get; set; }
-
 
         /// <summary>
         /// Validates the settings input object
