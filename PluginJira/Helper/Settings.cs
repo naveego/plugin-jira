@@ -5,10 +5,10 @@ namespace PluginJira.Helper
 {
     public class Settings
     {
-        
         public string Username { get; set; }
         public string ApiKey { get; set; }
         public string Tenant { get; set; }
+        public string Project { get; set; }
 
         /// <summary>
         /// Validates the settings input object
@@ -30,7 +30,12 @@ namespace PluginJira.Helper
                 throw new Exception("The Api Key property must be set");
             }
 
-             if (string.IsNullOrWhiteSpace(Tenant))
+            if (string.IsNullOrWhiteSpace(Tenant))
+            {
+                throw new Exception("The Tenant is not set properly");
+            }
+
+            if (string.IsNullOrWhiteSpace(Project))
             {
                 throw new Exception("The Tenant is not set properly");
             }
@@ -44,6 +49,11 @@ namespace PluginJira.Helper
         public string GetBaseUri()
         {
             return $"https://{Tenant}.atlassian.net/rest/api/2";           
+        }
+
+        public string GetProject()
+        {
+            return $"{Project}";           
         }
     }
 }
