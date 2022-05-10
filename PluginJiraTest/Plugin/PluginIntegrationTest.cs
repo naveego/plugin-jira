@@ -20,9 +20,9 @@ namespace PluginJiraTest.Plugin
         {
             return new Settings
             {
-                ApiKey = "test123",
-                Username = "test123",
-                Tenant = "test123"
+                ApiKey = "",
+                Username = "",
+                Tenant = ""
             };
         }
 
@@ -262,7 +262,7 @@ namespace PluginJiraTest.Plugin
             var channel = new Channel($"localhost:{port}", ChannelCredentials.Insecure);
             var client = new Publisher.PublisherClient(channel);
 
-            var schema = GetTestSchema("AllIssues");
+            var schema = GetTestSchema("AssignableUsers");
 
             var connectRequest = GetConnectSettings();
 
