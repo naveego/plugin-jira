@@ -36,7 +36,8 @@
       "ui:order": [
         "ApiKey",
         "Username",
-        "Tenant"
+        "Tenant",
+        "Depth"
       ],
       "ApiKey": {
         "ui:widget": "password"
