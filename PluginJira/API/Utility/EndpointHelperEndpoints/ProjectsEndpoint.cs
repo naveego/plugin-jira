@@ -63,7 +63,7 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
             {"AllProjects", new ProjectsEndpoint
             {
                 Id = "AllProjects",
-                Name = "AllProjects",
+                Name = "All Projects",
                 BasePath = "/Projects",
                 AllPath = "/",
                 DetailPath = "/",

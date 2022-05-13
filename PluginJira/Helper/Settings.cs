@@ -9,6 +9,7 @@ namespace PluginJira.Helper
         public string Username { get; set; }
         public string ApiKey { get; set; }
         public string Tenant { get; set; }
+        public string Depth { get; set; }
 
         /// <summary>
         /// Validates the settings input object
@@ -34,6 +35,16 @@ namespace PluginJira.Helper
             {
                 throw new Exception("The Tenant is not set properly");
             }
+
+             if (string.IsNullOrWhiteSpace(Depth))
+             {
+                 throw new Exception("The depth property must be set");
+             }
+
+             if (Int32.Parse(Depth) < 0)
+             {
+                 throw new Exception("The depth property must be an integer 0 or greater");
+             }
         }
 
         public string GetSdkUri() 

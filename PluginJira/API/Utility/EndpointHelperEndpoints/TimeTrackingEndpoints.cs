@@ -26,32 +26,49 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
 
                 var issues = from i in jira.Issues.Queryable
                     select i;
+                
+                var issuesExist = false;
+                try
+                {
+                    issuesExist = issues.Any();
+                }
+                catch
+                {
+                    issuesExist = false;
+                }
+                
                 // iterate and return each record
                 // foreach on results of JQL
-                foreach (var issue in issues)
+                if (issuesExist)
                 {
-                    if (issue.TimeTrackingData == null)
+                    foreach (var issue in issues)
                     {
-                        continue;
+                        if (issue.TimeTrackingData == null)
+                        {
+                            continue;
+                        }
+
+                        var recordMap = new Dictionary<string, object>();
+
+                        recordMap["IssueKey"] = issue.Key.Value;
+                        recordMap["IssueProject"] = issue.Project;
+                        recordMap["IssueStatus"] = issue.Status.Name;
+
+                        recordMap["OriginalEstimate"] = issue.TimeTrackingData.OriginalEstimate ?? "";
+                        recordMap["OriginalEstimateInSeconds"] =
+                            issue.TimeTrackingData.OriginalEstimateInSeconds.ToString() ?? "";
+                        recordMap["RemainingEstimate"] = issue.TimeTrackingData.RemainingEstimate ?? "";
+                        recordMap["RemainingEstimateInSeconds"] =
+                            issue.TimeTrackingData.RemainingEstimateInSeconds.ToString() ?? "";
+                        recordMap["TimeSpent"] = issue.TimeTrackingData.TimeSpent ?? "";
+                        recordMap["TimeSpentInSeconds"] = issue.TimeTrackingData.TimeSpentInSeconds.ToString() ?? "";
+
+                        yield return new Record
+                        {
+                            Action = Record.Types.Action.Upsert,
+                            DataJson = JsonConvert.SerializeObject(recordMap)
+                        };
                     }
-                    var recordMap = new Dictionary<string, object>();
-
-                    recordMap["IssueKey"] = issue.Key.Value;
-                    recordMap["IssueProject"] = issue.Project;
-                    recordMap["IssueStatus"] = issue.Status.Name;
-                    
-                    recordMap["OriginalEstimate"] = issue.TimeTrackingData.OriginalEstimate ?? "";
-                    recordMap["OriginalEstimateInSeconds"] = issue.TimeTrackingData.OriginalEstimateInSeconds.ToString() ?? "";
-                    recordMap["RemainingEstimate"] = issue.TimeTrackingData.RemainingEstimate ?? "";
-                    recordMap["RemainingEstimateInSeconds"] = issue.TimeTrackingData.RemainingEstimateInSeconds.ToString() ?? "";
-                    recordMap["TimeSpent"] = issue.TimeTrackingData.TimeSpent ?? "";
-                    recordMap["TimeSpentInSeconds"] = issue.TimeTrackingData.TimeSpentInSeconds.ToString() ?? "";
-
-                    yield return new Record
-                    {
-                        Action = Record.Types.Action.Upsert,
-                        DataJson = JsonConvert.SerializeObject(recordMap)
-                    };
                 }
             } 
         }

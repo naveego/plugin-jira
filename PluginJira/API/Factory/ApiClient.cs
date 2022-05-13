@@ -85,7 +85,7 @@ namespace PluginJira.API.Factory
             try
             {
                 var token = await Authenticator.GetToken();
-                var uri = new Uri($"{Constants.BaseApiUrl.TrimEnd('/')}/{path.TrimStart('/')}");
+                var uri = new Uri($"https://{Settings.Tenant}.{Constants.BaseApiUrl.TrimEnd('/')}/{path.TrimStart('/')}");
                 
                 var request = new HttpRequestMessage
                 {
@@ -93,7 +93,7 @@ namespace PluginJira.API.Factory
                     RequestUri = uri,
                     Content = json
                 };
-                request.Headers.Add(_tokenHeaderName, token);
+                request.Headers.Add("Authorization", $"Basic {token}");
 
                 return await Client.SendAsync(request);
             }
@@ -126,6 +126,11 @@ namespace PluginJira.API.Factory
                 Logger.Error(e, e.Message);
                 throw;
             }
+        }
+
+        public async Task<string> GetDepth()
+        {
+            return Settings.Depth;
         }
 
         public async Task<HttpResponseMessage> PatchAsync(string path, StringContent json)

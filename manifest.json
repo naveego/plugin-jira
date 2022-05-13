@@ -34,7 +34,9 @@
   "configSchema": {
     "ui": {
       "ui:order": [
-        "ApiKey"
+        "ApiKey",
+        "Username",
+        "Tenant"
       ],
       "ApiKey": {
         "ui:widget": "password"
@@ -47,10 +49,28 @@
           "type": "string",
           "title": "API Key",
           "description": "The Jira API Key."
+        },
+        "Username" : {
+          "type": "string",
+          "title": "Username",
+          "description": "Username/Email used to generate API key. Typically is an email address."
+        },
+        "Tenant" : {
+          "type": "string",
+          "title": "Tenant",
+          "description": "The tenant to connect to."
+        },
+        "Depth" : {
+          "type": "string",
+          "title": "Depth",
+          "description": "The depth to parse and flatten nested objects. Values > 0 may have a performance impact."
         }
       },
       "required": [
-        "ApiKey"
+        "ApiKey",
+        "Username",
+        "Tenant",
+        "Depth"
       ]
     }
   }

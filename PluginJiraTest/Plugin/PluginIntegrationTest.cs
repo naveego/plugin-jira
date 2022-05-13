@@ -22,12 +22,13 @@ namespace PluginJiraTest.Plugin
             {
                 ApiKey = "",
                 Username = "",
-                Tenant = ""
+                Tenant = "",
+                Depth = ""
             };
         }
 
         private ConnectRequest GetConnectSettings()
-        {
+        {   
             var settings = GetSettings();
 
             return new ConnectRequest
@@ -214,7 +215,7 @@ namespace PluginJiraTest.Plugin
                 SampleSize = 10,
                 ToRefresh =
                 {
-                    GetTestSchema("ActiveSubscribers")
+                    GetTestSchema("AllIssues")
                 }
             };
 
@@ -262,7 +263,7 @@ namespace PluginJiraTest.Plugin
             var channel = new Channel($"localhost:{port}", ChannelCredentials.Insecure);
             var client = new Publisher.PublisherClient(channel);
 
-            var schema = GetTestSchema("AssignableUsers");
+            var schema = GetTestSchema("AllIssues");
 
             var connectRequest = GetConnectSettings();
 
@@ -296,7 +297,7 @@ namespace PluginJiraTest.Plugin
             }
 
             // assert
-            Assert.Equal(20, records.Count);
+            Assert.Equal(42208, records.Count);
 
             var record = JsonConvert.DeserializeObject<Dictionary<string, object>>(records[0].DataJson);
             // Assert.Equal("~", record["tilde"]);

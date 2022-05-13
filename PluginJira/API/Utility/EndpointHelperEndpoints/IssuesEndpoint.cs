@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Grpc.Core;
 using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PluginJira.API.Factory;
 using PluginJira.API.Utility.EndpointHelperEndpoints;
 using PluginJira.DataContracts;
 using PluginJira.Helper;
+using RestSharp;
+using JsonSerializer = RestSharp.Serialization.Json.JsonSerializer;
 
 namespace PluginJira.API.Utility.EndpointHelperEndpoints
 {
@@ -18,42 +23,77 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
     {
         private class IssuesEndpoint : Endpoint
         {
-            public override async IAsyncEnumerable<Record> ReadRecordsAsync(IApiClientFactory factory, Settings settings,
-            DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null, bool isDiscoverRead = false)
+            public override async IAsyncEnumerable<Record> ReadRecordsAsync(IApiClientFactory factory,
+                Settings settings,
+                DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null, bool isDiscoverRead = false)
             {
-                // fetch all records
-                var jira = factory.CreateJiraClient(settings);
+                
 
-                // var issues = jira.Issues.Queryable
-                // .Select(i => i)
-                // .GroupBy(i => i.Key);
+                var httpClient = factory.CreateApiClient(settings);
+                
+                var depth = Int32.Parse(await httpClient.GetDepth());
 
-                var issues = from i in jira.Issues.Queryable
-                    select i;
-
-                // iterate and return each record
-                // foreach on results of JQL
-                foreach (var issue in issues)
+                var hasMore = true;
+                var startAt = 0;
+                var maxResults = 100;
+                
+                while (hasMore)
                 {
-                    var recordMap = new Dictionary<string, object>();
+                    var json = $"{{\"jql\": \"\",\"startAt\": {startAt}," +
+                               $"\"maxResults\": {maxResults}," +
+                               "\"validateQuery\": true," +
+                               "\"fields\": " +
+                               "[\"*all\", \"-comment\",\"-attachment\",\"-issuelinks\",\"-subtasks\",\"-watches\",\"-worklog\"]}";
+                    var result = await httpClient.PostAsync("search",
+                        new StringContent(json, Encoding.UTF8, "application/json"));
+                    var resultString = await result.Content.ReadAsStringAsync();
+                    var issuesResponseWrapper = JsonConvert.DeserializeObject<IssuesWrapper>(resultString);
 
-                    // pull in all desired properties
-                    recordMap["Key"] = issue.Key.Value;
-                    recordMap["Project"] = issue.Project;
-                    recordMap["Issuetype"] = issue.Type.Name;
-                    recordMap["Description"] = issue.Description;
-                    recordMap["Reporter"] = issue.ReporterUser.DisplayName;
-                    recordMap["Created"] = issue.Created.Value;
-                    recordMap["Status"] = issue.Status.Name;
-                    recordMap["Resolution"] = issue.Resolution;
-                    recordMap["Updated"] = issue.Updated.Value;
-
-
-                    yield return new Record
+                    startAt += issuesResponseWrapper.Issues.Count();
+                    if (startAt >= issuesResponseWrapper.Total || (isDiscoverRead && startAt >= 100))
                     {
-                        Action = Record.Types.Action.Upsert,
-                        DataJson = JsonConvert.SerializeObject(recordMap)
-                    };
+                        hasMore = false;
+                    }
+                    
+                    foreach (var issue in issuesResponseWrapper.Issues)
+                    {
+                        var recordMap = new Dictionary<string, object>();
+
+                        recordMap["Id"] = issue.Id;
+                        recordMap["Key"] = issue.Key;
+                        recordMap["Self"] = issue.Self;
+                        foreach (var field in issue.Fields)
+                        {
+                            if (depth > 0)
+                            {
+                                try
+                                {
+                                    JObject parentObject = (JObject) field.Value;
+                                    EndpointHelper.FlattenAndReadRecord(recordMap, parentObject, depth, field.Key);
+                                }
+                                catch (Exception e)
+                                {
+                                    var db = e;
+                                }
+                                finally
+                                {
+                                    //do entire submission of the object to single row for referencing
+                                    recordMap[field.Key] = field.Value?.ToString() ?? "";
+                                }
+                            }
+                            else
+                            {
+                                recordMap[field.Key] = field.Value?.ToString() ?? "";
+                            }
+
+                        }
+
+                        yield return new Record
+                        {
+                            Action = Record.Types.Action.Upsert,
+                            DataJson = JsonConvert.SerializeObject(recordMap)
+                        };
+                    }
                 }
             } 
         }

@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PluginJira.API.Factory;
 using PluginJira.API.Utility.EndpointHelperEndpoints;
 using PluginJira.DataContracts;
 using PluginJira.Helper;
+using RestSharp;
 
 namespace PluginJira.API.Utility
 {
@@ -23,8 +25,8 @@ namespace PluginJira.API.Utility
         static EndpointHelper()
         {
             IssuesEndpointHelper.IssuesEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
-            ProjectsEndpointHelper.ProjectsEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
-            TimeTrackingEndpointsHelper.TimeTrackingEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
+            // ProjectsEndpointHelper.ProjectsEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
+            // TimeTrackingEndpointsHelper.TimeTrackingEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
         }
 
         public static Dictionary<string, Endpoint> GetAllEndpoints()
@@ -42,6 +44,44 @@ namespace PluginJira.API.Utility
             var endpointMetaJson = JsonConvert.DeserializeObject<dynamic>(schema.PublisherMetaJson);
             string endpointId = endpointMetaJson.Id;
             return GetEndpointForId(endpointId);
+        }
+        public static void FlattenAndReadRecord(Dictionary<string, object> recordMap, JObject thisObject, int depth, string runningColumnName)
+        {
+            if (depth <= 0)
+            {
+                recordMap[$"{runningColumnName.TrimEnd('.')}"] = thisObject.ToString();
+                return;
+            }
+            try
+            {
+                foreach (var child in thisObject)
+                {
+                    var hasChildren = false;
+                    try
+                    {
+                        //checking if castable / checking for empty lists
+                        var childValue = (JObject) child.Value;
+                        hasChildren = child.Value?.Children().Count() > 0;
+                    }
+                    catch (Exception e)
+                    {
+                        hasChildren = false;
+                    }
+                    
+                    if (hasChildren)
+                    {
+                        FlattenAndReadRecord(recordMap, (JObject)child.Value, depth - 1, $"{runningColumnName}.{child.Key}");
+                    }
+                    else
+                    {
+                        recordMap[$"{runningColumnName.TrimEnd('.')}.{child.Key}"] = child.Value?.ToString() ?? "";
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                            
+            }
         }
     }
 
