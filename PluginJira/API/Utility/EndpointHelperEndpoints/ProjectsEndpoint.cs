@@ -71,10 +71,6 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 SupportedActions = new List<EndpointActions>
                 {
                     EndpointActions.Get
-                },
-                PropertyKeys = new List<string>
-                {
-                    "BounceID"
                 }
             }},
         };

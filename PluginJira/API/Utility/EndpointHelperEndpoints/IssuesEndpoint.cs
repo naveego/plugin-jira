@@ -27,8 +27,6 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 Settings settings,
                 DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null, bool isDiscoverRead = false)
             {
-                
-
                 var httpClient = factory.CreateApiClient(settings);
                 
                 var depth = Int32.Parse(await httpClient.GetDepth());
@@ -111,10 +109,6 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 SupportedActions = new List<EndpointActions>
                 {
                     EndpointActions.Get
-                },
-                PropertyKeys = new List<string>
-                {
-                    "BounceID"
                 }
             }},
         };

@@ -25,8 +25,8 @@ namespace PluginJira.API.Utility
         static EndpointHelper()
         {
             IssuesEndpointHelper.IssuesEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
-            // ProjectsEndpointHelper.ProjectsEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
-            // TimeTrackingEndpointsHelper.TimeTrackingEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
+            ProjectsEndpointHelper.ProjectsEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
+            TimeTrackingEndpointsHelper.TimeTrackingEndpoints.ToList().ForEach(x => Endpoints.TryAdd(x.Key, x.Value));
         }
 
         public static Dictionary<string, Endpoint> GetAllEndpoints()

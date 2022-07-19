@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Atlassian.Jira;
 using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PluginJira.API.Factory;
+using PluginJira.DataContracts;
 using PluginJira.Helper;
 
 namespace PluginJira.API.Utility.EndpointHelperEndpoints
@@ -17,51 +21,129 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
             public override async IAsyncEnumerable<Record> ReadRecordsAsync(IApiClientFactory factory, Settings settings,
                 DateTime? lastReadTime = null, TaskCompletionSource<DateTime>? tcs = null, bool isDiscoverRead = false)
             {
-                // fetch all records
-                var jira = factory.CreateJiraClient(settings);
-
-                // var issues = jira.Issues.Queryable
-                // .Select(i => i)
-                // .GroupBy(i => i.Key);
-
-                var issues = from i in jira.Issues.Queryable
-                    select i;
+                var httpClient = factory.CreateApiClient(settings);
                 
-                var issuesExist = false;
-                try
-                {
-                    issuesExist = issues.Any();
-                }
-                catch
-                {
-                    issuesExist = false;
-                }
+                var depth = Int32.Parse(await httpClient.GetDepth());
+
+                var hasMore = true;
+                var startAt = 0;
+                var maxResults = 100;
                 
-                // iterate and return each record
-                // foreach on results of JQL
-                if (issuesExist)
+                while (hasMore)
                 {
-                    foreach (var issue in issues)
+                    var json = $"{{\"jql\": \"\",\"startAt\": {startAt}," +
+                               $"\"maxResults\": {maxResults}," +
+                               "\"validateQuery\": true," +
+                               "\"fields\": " +
+                               "[\"*all\", \"-comment\",\"-attachment\",\"-issuelinks\",\"-subtasks\",\"-watches\",\"-worklog\"]}";
+                    var result = await httpClient.PostAsync("search",
+                        new StringContent(json, Encoding.UTF8, "application/json"));
+                    var resultString = await result.Content.ReadAsStringAsync();
+                    var issuesResponseWrapper = JsonConvert.DeserializeObject<IssuesWrapper>(resultString);
+
+                    startAt += issuesResponseWrapper.Issues.Count();
+                    if (startAt >= issuesResponseWrapper.Total || (isDiscoverRead && startAt >= 100))
                     {
-                        if (issue.TimeTrackingData == null)
-                        {
-                            continue;
-                        }
-
+                        hasMore = false;
+                    }
+                    
+                    foreach (var issue in issuesResponseWrapper.Issues)
+                    {
                         var recordMap = new Dictionary<string, object>();
+                        try
+                        {
+                            recordMap["Id"] = issue.Id;
+                            recordMap["Key"] = issue.Key;
+                            recordMap["Self"] = issue.Self;
+                            recordMap["timeoriginalestimate"] = issue.Fields["timeoriginalestimate"].ToString() ?? "";
+                            recordMap["aggregatetimeoriginalestimate"] = issue.Fields["aggregatetimeoriginalestimate"].ToString() ?? "";
+                            recordMap["timespent"] = issue.Fields["timespent"].ToString() ?? "";
+                            recordMap["aggregatetimespent"] = issue.Fields["aggregatetimespent"].ToString() ?? "";
 
-                        recordMap["IssueKey"] = issue.Key.Value;
-                        recordMap["IssueProject"] = issue.Project;
-                        recordMap["IssueStatus"] = issue.Status.Name;
-
-                        recordMap["OriginalEstimate"] = issue.TimeTrackingData.OriginalEstimate ?? "";
-                        recordMap["OriginalEstimateInSeconds"] =
-                            issue.TimeTrackingData.OriginalEstimateInSeconds.ToString() ?? "";
-                        recordMap["RemainingEstimate"] = issue.TimeTrackingData.RemainingEstimate ?? "";
-                        recordMap["RemainingEstimateInSeconds"] =
-                            issue.TimeTrackingData.RemainingEstimateInSeconds.ToString() ?? "";
-                        recordMap["TimeSpent"] = issue.TimeTrackingData.TimeSpent ?? "";
-                        recordMap["TimeSpentInSeconds"] = issue.TimeTrackingData.TimeSpentInSeconds.ToString() ?? "";
+                            try
+                            {
+                                var progress = JObject.Parse(issue.Fields["progress"].ToString() ?? "");
+                                recordMap["progress.progress"] = progress["progress"]?.ToString() ?? "";
+                                recordMap["progress.total"] = progress["total"]?.ToString() ?? "";
+                                recordMap["progress.percent"] = progress["percent"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["progress.progress"] = "";
+                                recordMap["progress.total"] = "";
+                                recordMap["progress.percent"] = "";
+                            }
+                            
+                            try
+                            {
+                                var timetracking = JObject.Parse(issue.Fields["timetracking"].ToString() ?? "");
+                                recordMap["timetracking.remainingEstimate"] = timetracking["remainingEstimate"]?.ToString() ?? "";
+                                recordMap["timetracking.timeSpent"] = timetracking["timeSpent"]?.ToString() ?? "";
+                                recordMap["timetracking.remainingEstimateSeconds"] = timetracking["remainingEstimateSeconds"]?.ToString() ?? "";
+                                recordMap["timetracking.timeSpentSeconds"] = timetracking["timeSpentSeconds"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["timetracking.remainingEstimate"] = "";
+                                recordMap["timetracking.timeSpent"] = "";
+                                recordMap["timetracking.remainingEstimateSeconds"] = "";
+                                recordMap["timetracking.timeSpentSeconds"] = "";
+                            }
+                            
+                            
+                            try
+                            {
+                                var priority = JObject.Parse(issue.Fields["priority"].ToString() ?? "");
+                                recordMap["priorityName"] = priority["name"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["priorityName"] = "";
+                            }
+                            
+                            try
+                            {
+                                var status = JObject.Parse(issue.Fields["status"].ToString() ?? "");
+                                recordMap["status.description"] = status["description"]?.ToString() ?? "";
+                                recordMap["status.name"] = status["name"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["status.description"] = "";
+                                recordMap["status.name"] = "";
+                            }
+                            
+                            try
+                            {
+                                var creator = JObject.Parse(issue.Fields["creator"].ToString() ?? "");
+                                recordMap["creator.emailAddress"] = creator["emailAddress"]?.ToString() ?? "";
+                                recordMap["creator.displayName"] = creator["displayName"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["creator.emailAddress"] = "";
+                                recordMap["creator.displayName"] = "";
+                            }
+                            
+                            try
+                            {
+                                var aggregateProgress = JObject.Parse(issue.Fields["aggregateprogress"].ToString() ?? "");
+                                recordMap["aggregateProgress.progress"] = aggregateProgress["progress"]?.ToString() ?? "";
+                                recordMap["aggregateProgress.total"] = aggregateProgress["total"]?.ToString() ?? "";
+                                recordMap["aggregateProgress.percent"] = aggregateProgress["percent"]?.ToString() ?? "";
+                            }
+                            catch
+                            {
+                                recordMap["aggregateProgress.progress"] = "";
+                                recordMap["aggregateProgress.total"] = "";
+                                recordMap["aggregateProgress.percent"] = "";
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            var db = recordMap;
+                        }
+                        
 
                         yield return new Record
                         {
@@ -70,7 +152,67 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                         };
                     }
                 }
-            } 
+            }
+
+            public override async Task<Schema> GetStaticSchemaAsync(IApiClientFactory factory, Settings settings, Schema schema)
+            {
+                List<string> staticSchemaProperties = new List<string>()
+                {
+                    "Id",
+                    "Key",
+                    "Self",
+                    "timeoriginalestimate",
+                    "aggregatetimeoriginalestimate",
+                    "timespent",
+                    "aggregatetimespent",
+                    "progress.progress",
+                    "progress.total",
+                    "progress.percent",
+                    "timetracking.remainingEstimate",
+                    "timetracking.timeSpent",
+                    "timetracking.remainingEstimateSeconds",
+                    "timetracking.timeSpentSeconds",
+                    "priorityName",
+                    "status.description",
+                    "status.name",
+                    "creator.emailAddress",
+                    "creator.displayName",
+                    "aggregateProgress.progress",
+                    "aggregateProgress.total",
+                    "aggregateProgress.percent"
+                };
+
+                var properties = new List<Property>();
+
+                foreach (var staticProperty in staticSchemaProperties)
+                {
+                    var property = new Property();
+
+                    property.Id = staticProperty;
+                    property.Name = staticProperty;
+
+                    switch (staticProperty)
+                    {
+                        case("Id"):
+                            property.IsKey = true;
+                            property.TypeAtSource = "string";
+                            property.Type = PropertyType.String;
+                            break;
+                        default:
+                            property.IsKey = false;
+                            property.TypeAtSource = "string";
+                            property.Type = PropertyType.String;
+                            break;
+                            
+                    }
+                    properties.Add(property);
+                }
+                schema.Properties.Clear();
+                schema.Properties.AddRange(properties);
+
+                schema.DataFlowDirection = GetDataFlowDirection();
+                return schema;
+            }
         }
         public static readonly Dictionary<string, Endpoint> TimeTrackingEndpoints = new Dictionary<string, Endpoint>
         {
@@ -86,10 +228,7 @@ namespace PluginJira.API.Utility.EndpointHelperEndpoints
                 {
                     EndpointActions.Get
                 },
-                PropertyKeys = new List<string>
-                {
-                    "BounceID"
-                }
+                ShouldGetStaticSchema = true,
             }},
         };
     }
